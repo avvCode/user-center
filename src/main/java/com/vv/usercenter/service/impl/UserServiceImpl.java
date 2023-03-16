@@ -1,15 +1,19 @@
 package com.vv.usercenter.service.impl;
+import java.util.Date;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.vv.usercenter.constant.UserConstant;
 import com.vv.usercenter.domain.po.User;
 import com.vv.usercenter.service.UserService;
 import com.vv.usercenter.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +23,7 @@ import java.util.regex.Pattern;
 * @createDate 2023-03-16 15:53:51
 */
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService{
 
     @Override
@@ -50,8 +55,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return -1;
         }
         //密码加密
-        final String SALT = "vv";
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
+        String encryptPassword = DigestUtils.md5DigestAsHex((UserConstant.SALT+userPassword).getBytes());
         //保存用户
         User user = new User();
         user.setUserAccount(userAccount);
@@ -61,6 +65,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return -1;
         }
         return user.getId();
+    }
+
+    @Override
+    public User login(String userAccount, String userPassword, HttpServletRequest request) {
+
+        //非空，长度
+        if(StringUtils.isAnyBlank(userAccount,userPassword)){
+            return null;
+        }
+        if(userAccount.length() <4){
+            return null;
+        }
+
+        //用户名不能包含特殊字符
+        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
+        if(matcher.find()){
+            return null;
+        }
+
+        //密码加密
+        String encryptPassword = DigestUtils.md5DigestAsHex((UserConstant.SALT+userPassword).getBytes());
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_account",userAccount).eq("user_password",encryptPassword);
+        log.info("account：{},password：{}",userAccount,encryptPassword);
+        User user = this.getOne(wrapper);
+        if(user == null){
+            log.info(" user login failed, userAcount cannot match userPassword");
+            return null;
+        }
+        log.info("user：" + user);
+        //用户信息脱敏
+        User safetyUser = new User();
+        safetyUser.setId(user.getId());
+        safetyUser.setUserAccount(user.getUserAccount());
+        safetyUser.setUsername(user.getUsername());
+        safetyUser.setAvatarUrl(user.getAvatarUrl());
+        safetyUser.setGender(user.getGender());
+        safetyUser.setPhone(user.getPhone());
+        safetyUser.setEmail(user.getEmail());
+        safetyUser.setCreateTime(user.getCreateTime());
+        safetyUser.setUserStatus(user.getUserStatus());
+        safetyUser.setIsDelete(user.getIsDelete());
+        safetyUser.setUserRole(user.getUserRole());
+        //记录用户登录状态
+        HttpSession session = request.getSession();
+        session.setAttribute(UserConstant.USER_LOGIN_STATE,safetyUser);
+
+        return safetyUser;
     }
 }
 

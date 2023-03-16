@@ -3,20 +3,23 @@
 user表
 
 ```sql
-create table tb_user(
-     id bigint primary key auto_increment comment '主键id',
-     user_account varchar(256)  comment '用户账号',
-     username varchar(256) not null comment '用户名',
-     avatar_url varchar(1024) comment '用户头像',
-     gender tinyint comment '用户性别',
-     user_password varchar(256) not null comment '用户密码',
-     phone varchar(128) comment '用户手机',
-     email varchar(512) comment '用户邮箱',
-     user_status int default 0 comment '用户状态',
-     create_time datetime default CURRENT_TIMESTAMP comment '创建时间',
-     update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
-     is_delete tinyint comment '逻辑删除'
-) default charset utf8mb4 comment '用户';
+create table tb_user
+(
+	id bigint auto_increment comment '主键id'
+		primary key,
+	user_account varchar(256) null comment '用户账号',
+	username varchar(256) null comment '用户名',
+	avatar_url varchar(1024) null comment '用户头像',
+	gender tinyint null comment '用户性别',
+	user_password varchar(256) not null comment '用户密码',
+	phone varchar(128) null comment '用户手机',
+	email varchar(512) null comment '用户邮箱',
+	user_status int default 0 null comment '用户状态',
+	create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+	update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+	is_delete tinyint default 0 null comment '逻辑删除'
+)
+comment '用户';
 ```
 
 用户中心业务设计
@@ -43,3 +46,30 @@ create table tb_user(
 
 ​			插入数据库，密码md5加密，绝对不能明存储
 
+2.登录
+
+​	前端：
+
+​		POST请求 用户名 + 密码
+
+​	后端：
+
+​		先进行用户名正确性
+
+​		再根据用户名查询密码并返回匹配结果
+
+​		成功返回用户所有数据（脱敏）
+
+如何知道是哪个用户登陆了？
+
+1.连接上服务端后，得到一个session1状态，返回给前端
+
+2.登录成功后，得到了登录成功的session，并且给session设置一些值，返回给前端一个设置cookie的命令
+
+3.前端接收到后端的命令后，设置cookie,保存到浏览器内
+
+4.前端再次去请求后端的时候（相同域名），在请求头中带cookie去请求
+
+5.后端拿到cookie找到对应的session
+
+6.从session中科院取出基于该session存储的变量，（用户的登录信息、登录名等）
