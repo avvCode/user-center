@@ -97,22 +97,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         log.info("user：" + user);
         //用户信息脱敏
-        User safetyUser = new User();
-        safetyUser.setId(user.getId());
-        safetyUser.setUserAccount(user.getUserAccount());
-        safetyUser.setUsername(user.getUsername());
-        safetyUser.setAvatarUrl(user.getAvatarUrl());
-        safetyUser.setGender(user.getGender());
-        safetyUser.setPhone(user.getPhone());
-        safetyUser.setEmail(user.getEmail());
-        safetyUser.setCreateTime(user.getCreateTime());
-        safetyUser.setUserStatus(user.getUserStatus());
-        safetyUser.setIsDelete(user.getIsDelete());
-        safetyUser.setUserRole(user.getUserRole());
+        User safetyUser = getSafetyUser(user);
         //记录用户登录状态
         HttpSession session = request.getSession();
         session.setAttribute(UserConstant.USER_LOGIN_STATE,safetyUser);
 
+        return safetyUser;
+    }
+    @Override
+    public User getSafetyUser(User  originUser){
+        User safetyUser = new User();
+        safetyUser.setId(originUser.getId());
+        safetyUser.setUserAccount(originUser.getUserAccount());
+        safetyUser.setUsername(originUser.getUsername());
+        safetyUser.setAvatarUrl(originUser.getAvatarUrl());
+        safetyUser.setGender(originUser.getGender());
+        safetyUser.setPhone(originUser.getPhone());
+        safetyUser.setEmail(originUser.getEmail());
+        safetyUser.setCreateTime(originUser.getCreateTime());
+        safetyUser.setUserStatus(originUser.getUserStatus());
+        safetyUser.setIsDelete(originUser.getIsDelete());
+        safetyUser.setUserRole(originUser.getUserRole());
         return safetyUser;
     }
 }

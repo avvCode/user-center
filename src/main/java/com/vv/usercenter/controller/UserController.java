@@ -77,10 +77,7 @@ public class UserController {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.like("username",username);
         List<User> userList = userService.list(queryWrapper);
-        return userList.stream().map(user -> {
-            user.setUserPassword(null);
-            return user;
-        }).collect(Collectors.toList());
+        return userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
     }
     private boolean isAdmin(HttpServletRequest request){
         User user = (User) request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
