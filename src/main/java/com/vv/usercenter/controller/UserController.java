@@ -2,6 +2,9 @@ package com.vv.usercenter.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.vv.usercenter.common.BaseResponse;
+import com.vv.usercenter.common.ErrorCode;
+import com.vv.usercenter.common.ResultUtils;
 import com.vv.usercenter.constant.UserConstant;
 import com.vv.usercenter.domain.po.User;
 import com.vv.usercenter.domain.request.UserLoginRequest;
@@ -25,7 +28,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public Long register(@RequestBody  UserRegisterRequest userRegisterRequest){
+    public BaseResponse<Long> register(@RequestBody  UserRegisterRequest userRegisterRequest){
         if(userRegisterRequest == null){
             return null;
         }
@@ -37,13 +40,14 @@ public class UserController {
            return null;
         }
 
-        return userService.userRegister(userAccount, userPassword, checkPassword);
+        long l = userService.userRegister(userAccount, userPassword, checkPassword);
+        return ResultUtils.success(l);
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if(userLoginRequest == null){
-            return null;
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
@@ -51,48 +55,50 @@ public class UserController {
             return null;
         }
         User user = userService.login(userAccount, userPassword, request);
-        return user;
+        return ResultUtils.success(user);
     }
 
     @PostMapping("/delete")
-    public boolean delete(@RequestBody Map<String,Object> param,HttpServletRequest request){
+    public BaseResponse<Boolean> delete(@RequestBody Map<String,Object> param,HttpServletRequest request){
         Integer id = (Integer) param.get("id");
         if(!isAdmin(request)){
-            return false;
+            return ResultUtils.error(ErrorCode.NO_AUTHORITY_ERROR);
         }
         if(id == null || id <= 0){
-            return false;
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
-        return userService.removeById(id);
+        return ResultUtils.success(userService.removeById(id));
     }
     @PostMapping("/search")
-    public List<User> searchUsers(@RequestBody Map<String,Object> param,HttpServletRequest request){
+    public BaseResponse<List<User>> searchUsers(@RequestBody Map<String,Object> param,HttpServletRequest request){
        if (!isAdmin(request)){
-           return new ArrayList<>();
+           return null;
        }
         String username = (String) param.get("username");
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.like("username",username);
         List<User> userList = userService.list(queryWrapper);
-        return userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        List<User> collect = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtils.success(collect);
     }
 
 
     @GetMapping("/current")
-    public User getCurrentUser(HttpServletRequest request){
+    public BaseResponse<User> getCurrentUser(HttpServletRequest request){
         User user = (User) request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
         if(user == null){
             return null;
         }
-        return userService.getSafetyUser(userService.getById(user.getId()));
+        User safetyUser = userService.getSafetyUser(userService.getById(user.getId()));
+        return ResultUtils.success(safetyUser);
     }
 
     @PostMapping("/logout")
-    public Integer logout(HttpServletRequest request){
+    public BaseResponse<Integer> logout(HttpServletRequest request){
         if (request == null){
             return null;
         }
-        return userService.logout(request);
+        return ResultUtils.success(userService.logout(request));
     }
 
     private boolean isAdmin(HttpServletRequest request){

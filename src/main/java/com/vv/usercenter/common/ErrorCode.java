@@ -11,6 +11,7 @@ public enum ErrorCode {
     PARAMS_NULL_ERROR(40001,"请求数据为空",""),
     NOT_LOGIN_ERROR(40101,"无请求权限",""),
     NO_AUTHORITY_ERROR(40101,"无请求权限",""),
+    SYSTEM_ERROR(50000,"系统内部异常","")
     ;
     private final int code;
     private final String message;
@@ -20,5 +21,17 @@ public enum ErrorCode {
         this.code = code;
         this.message = message;
         this.description = description;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

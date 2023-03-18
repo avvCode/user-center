@@ -2,8 +2,10 @@ package com.vv.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.vv.usercenter.common.ErrorCode;
 import com.vv.usercenter.constant.UserConstant;
 import com.vv.usercenter.domain.po.User;
+import com.vv.usercenter.exception.BusinessException;
 import com.vv.usercenter.service.UserService;
 import com.vv.usercenter.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,29 +31,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
         //非空，长度
         if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword)){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
         }
         if(userAccount.length() <4){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户长度小于4");
         }
         if(userPassword.length() < 8 && checkPassword.length() <8){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户密码长度必须大于8");
         }
         //用户名不能包含特殊字符
         String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if(matcher.find()){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户名包含非法字符");
         }
         if(!userPassword.equals(checkPassword)){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"二次密码校验失败");
         }
         //用户名是否重复
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("user_account",userAccount);
         int count = this.count(wrapper);
         if(count > 0){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户已存在");
         }
         //密码加密
         String encryptPassword = DigestUtils.md5DigestAsHex((UserConstant.SALT+userPassword).getBytes());
