@@ -8,10 +8,7 @@ import com.vv.usercenter.domain.request.UserLoginRequest;
 import com.vv.usercenter.domain.request.UserRegisterRequest;
 import com.vv.usercenter.service.UserService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -79,6 +76,25 @@ public class UserController {
         List<User> userList = userService.list(queryWrapper);
         return userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
     }
+
+
+    @GetMapping("/current")
+    public User getCurrentUser(HttpServletRequest request){
+        User user = (User) request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        if(user == null){
+            return null;
+        }
+        return userService.getSafetyUser(userService.getById(user.getId()));
+    }
+
+    @PostMapping("/logout")
+    public Integer logout(HttpServletRequest request){
+        if (request == null){
+            return null;
+        }
+        return userService.logout(request);
+    }
+
     private boolean isAdmin(HttpServletRequest request){
         User user = (User) request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
         if(user == null || !user.getUserRole().equals(UserConstant.ADMIN_ROLE)){

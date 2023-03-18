@@ -1,5 +1,4 @@
 package com.vv.usercenter.service.impl;
-import java.util.Date;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -106,6 +105,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
     @Override
     public User getSafetyUser(User  originUser){
+        if(originUser == null){
+            return null;
+        }
         User safetyUser = new User();
         safetyUser.setId(originUser.getId());
         safetyUser.setUserAccount(originUser.getUserAccount());
@@ -119,6 +121,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         safetyUser.setIsDelete(originUser.getIsDelete());
         safetyUser.setUserRole(originUser.getUserRole());
         return safetyUser;
+    }
+
+    @Override
+    public int logout(HttpServletRequest request) {
+        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+        return 0;
     }
 }
 

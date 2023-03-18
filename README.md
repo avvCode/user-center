@@ -1,7 +1,5 @@
 用户中心数据库表设计
 
-user表
-
 ```sql
 create table tb_user
 (
@@ -73,3 +71,44 @@ comment '用户';
 5.后端拿到cookie找到对应的session
 
 6.从session中科院取出基于该session存储的变量，（用户的登录信息、登录名等）
+
+```bash
+npm cache clean --force # 清除
+```
+
+```bash
+npm insatll yarn -g # 安装yarn
+```
+
+```bash
+yarn config set registry https://registry.npm.taobao.org -g
+
+yarn config set sass_binary_site http://cdn.npm.taobao.org/dist/node-sass -g
+
+npm config set registry https://registry.npm.taobao.org
+```
+
+```bash
+npm i @ant-design/pro-cli -g #安装客户端
+```
+
+```bash
+pro create myapp # 创建模板项目
+```
+
+```bash
+umi@3 #选择 umi版本 
+```
+
+```bash
+simple # 轻量易扩展版本
+```
+
+```bash
+yarn add @umijs/preset-ui -D  # 添加可视化UI编辑器
+```
+
+```
+set-ExecutionPolicy RemoteSigned # 若在vscode里无法执行yarn，请更改安全策略，管理员打开PowerShell 
+```
+
